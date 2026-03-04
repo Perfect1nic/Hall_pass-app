@@ -25,19 +25,19 @@ def add_navigation(parent):
     nav_container.pack(side="top", fill="x")
 
     # Navigation Buttons placed next to each other
-    home_btn = tk.Button(nav_container, text="Home", 
+    home_btn = tk.Button(nav_container, text="Home",
                          command=lambda: show_frame(home_screen))
     home_btn.pack(side="left", padx=10, pady=5)
-    
-    about_btn = tk.Button(nav_container, text="About", 
+   
+    about_btn = tk.Button(nav_container, text="About",
                             command=lambda: show_frame(about_screen))
     about_btn.pack(side="left", padx=10, pady=5)
 
-    history_btn = tk.Button(nav_container, text="History", 
+    history_btn = tk.Button(nav_container, text="History",
                             command=lambda: show_frame(history_screen))
     history_btn.pack(side="left", padx=10, pady=5)
 
-    past_btn = tk.Button(nav_container, text="Past Passes", 
+    past_btn = tk.Button(nav_container, text="Past Passes",
                             command=lambda: show_frame(past_history))
     past_btn.pack(side="left", padx=10, pady=5)
 
@@ -48,16 +48,18 @@ def update_clock():
 
 
 def submit_pass(name, destination):
+    now = datetime.now()
     timestamp = datetime.now().strftime("%Y-%m-%d %I:%M %p")
     entry_dict = {
         "name": name,
         "dest": destination,
         "departed": timestamp,
+        "start_object": now,
         "returned": "Still Out"
     }
     pass_history.append(entry_dict)
     print(f"Logged: {entry_dict}") # For debugging
-    show_frame(submit_screen) 
+    show_frame(submit_screen)
 
     log_entry = f"{name} left for {destination} at {timestamp}"
 
@@ -67,7 +69,7 @@ def submit_pass(name, destination):
 def create_home_screen(container):
     frame = tk.Frame(container, bg="lightblue")
     frame.grid(row=0, column=0, sticky="nsew")
-    
+   
     # Add the navigation bar
     add_navigation(frame)
 
@@ -111,20 +113,23 @@ def create_history_screen(container):
     canvas.pack(side="left", fill="both", expand=True)
 
     def sign_in(entry, btn, label):
-        ret_time = datetime.now().strftime("%I:%M %p")
-        entry["returned"] = ret_time
+        end_time = datetime.now()
+        ret_string = end_time.strftime("%I:%M %p")
+        duration = end_time - entry["start_object"]
+        total_minutes = round(duration.total_seconds()/60)
+        entry["returned"] = f"{ret_string} ({total_minutes} mins)"
         # Update UI
         btn.pack_forget() # Remove button
-        label.config(text=f"Returned: {ret_time}", fg="green")
+        label.config(text=f"Returned: {entry['returned']}", fg="green")
         # Log return to file
         with open("log.txt", "a") as f:
-            f.write(f"{entry['name']} returned at {ret_time}\n")
+            f.write(f"{entry['name']} returned at {ret_string} (Total: {total_minutes} mins)\n")
 
     global refresh_list
     def refresh_list():
         for widget in scroll_frame.winfo_children():
             widget.destroy()
-        
+       
         if not pass_history:
             tk.Label(scroll_frame, text="No passes logged today.", bg="white").pack(pady=20)
             return
@@ -132,10 +137,10 @@ def create_history_screen(container):
         for entry in pass_history:
             row = tk.Frame(scroll_frame, bg="#f0f0f0", pady=5, padx=10, highlightbackground="gray", highlightthickness=1)
             row.pack(fill="x", pady=2, padx=10)
-            
+           
             info = f"{entry['name']} | {entry['dest']} | Left: {entry['departed']}"
             tk.Label(row, text=info, bg="#f0f0f0", font=("Arial", 10)).pack(side="left")
-            
+           
             status_label = tk.Label(row, text="", bg="#f0f0f0", font=("Arial", 10, "bold"))
             status_label.pack(side="right", padx=10)
 
@@ -155,7 +160,7 @@ def create_past_log_screen(container):
     add_navigation(frame)
 
     tk.Label(frame, text="Full Activity Log (log.txt)", font=("Arial", 18), bg="white").pack(pady=10)
-    
+   
     log_box = tk.Listbox(frame, font=("Arial", 10), width=80, height=20)
     log_box.pack(pady=10, padx=20)
 
@@ -166,7 +171,7 @@ def create_past_log_screen(container):
                 for line in f:
                     log_box.insert(tk.END, line.strip())
         except FileNotFoundError:
-            log_box.insert(tk.END, "No logs found.")
+            log_box.insert(tk.END, "No logs found🤔.")
 
     tk.Button(frame, text="Reload Log File", command=load_logs).pack(pady=5)
     return frame
@@ -174,7 +179,7 @@ def create_past_log_screen(container):
 def create_past_passes_screen(container):
     frame = tk.Frame(container, bg="white")
     frame.grid(row=0, column=0, sticky="nsew")
-    
+   
     # Add the navigation bar
     add_navigation(frame)
 
@@ -204,7 +209,7 @@ def create_past_passes_screen(container):
 def create_past_passes_screen(container):
     frame = tk.Frame(container, bg="white")
     frame.grid(row=0, column=0, sticky="nsew")
-    
+   
     # Add the navigation bar
     add_navigation(frame)
 
@@ -233,7 +238,7 @@ def create_past_passes_screen(container):
 def create_about_screen(container):
     frame = tk.Frame(container, bg="white")
     frame.grid(row=0, column=0, sticky="nsew")
-    
+   
     # Add the navigation bar
     add_navigation(frame)
 
@@ -248,7 +253,7 @@ def create_bathroom_screen(container):
     global name_bath
     frame = tk.Frame(container, bg="#C4A484")
     frame.grid(row=0, column=0, sticky="nsew")
-    
+   
     # Add the navigation bar
     add_navigation(frame)
 
@@ -273,7 +278,7 @@ def create_office_screen(container):
     global name_office
     frame = tk.Frame(container, bg="lightgreen")
     frame.grid(row=0, column=0, sticky="nsew")
-    
+   
     # Add the navigation bar
     add_navigation(frame)
 
@@ -295,7 +300,7 @@ def create_nurse_screen(container):
     global name_nurse
     frame = tk.Frame(container, bg="lightcoral")
     frame.grid(row=0, column=0, sticky="nsew")
-    
+   
     # Add the navigation bar
     add_navigation(frame)
 
@@ -318,7 +323,7 @@ def create_classroom_screen(container):
     global num_classroom
     frame = tk.Frame(container, bg="beige")
     frame.grid(row=0, column=0, sticky="nsew")
-    
+   
     # Add the navigation bar
     add_navigation(frame)
 
@@ -341,7 +346,7 @@ def create_classroom_screen(container):
                              command=process_classroom_submit)
     submit_btn.pack(pady=10)
 
-    
+   
     return frame
 
 
@@ -370,7 +375,7 @@ def create_submit_screen1(container):
     global result4_label
     frame = tk.Frame(container, bg="lightgreen")
     frame.grid(row=0, column=0, sticky="nsew")
-    
+   
     # Add the navigation bar
     add_navigation(frame)
 
@@ -391,7 +396,7 @@ def create_submit_screen1(container):
 
     result4_label = tk.Label(frame, text= "", font=("Arial", 18), bg="lightgreen" )
     result4_label.pack(pady=10)
-    
+   
     return frame
 
 def check_submit(entry_widget):
@@ -415,7 +420,6 @@ def check_roomnumb():
     else:
         print("Success! You entered")
         return True
-    return frame
 
 def process_nurse_submit():
     # The code only continues if soemone enters something into the entry box.
@@ -483,8 +487,5 @@ submit_screen = create_submit_screen1(main_container)
 
 # Show initial frame
 show_frame(home_screen)
-
-root.mainloop()
-
 
 root.mainloop()
